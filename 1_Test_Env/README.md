@@ -4,7 +4,7 @@
 
 ### py版本
 ```shell
-python3 python3 1_Test_Env/run.py
+python3 1_Test_Env/run.py
 ```
 
 输出`python`版本
