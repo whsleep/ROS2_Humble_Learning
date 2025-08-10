@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'python_pkg_node = demo_python_topic.cmd_pub:main',
+            'sub_node = demo_python_topic.cmd_pub:main',
+            'pub_node = demo_python_topic.pub_goal:main',
         ],
     },
 )

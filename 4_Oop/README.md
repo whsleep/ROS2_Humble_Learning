@@ -117,7 +117,7 @@ ros2 run py_pkg python_pkg_node
 ### 创建功能包
 
 ```shell
-cd cd 4_Oop/
+cd 4_Oop/
 ros2 pkg create --build-type ament_cmake cpp_pkg
 ```
 
