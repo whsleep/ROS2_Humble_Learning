@@ -1,4 +1,5 @@
 from setuptools import find_packages, setup
+from glob import glob
 
 package_name = 'demo_python_service'
 
@@ -12,6 +13,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name+"/resource", ['resource/zidane.jpg']),
         ('share/' + package_name+"/resource", ['resource/s_l.jpg']),
+        ('share/' + package_name+"/launch", glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

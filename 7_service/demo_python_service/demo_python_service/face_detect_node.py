@@ -8,6 +8,7 @@ import cv2
 from ament_index_python.packages import get_package_share_directory
 import os
 from cv_bridge import CvBridge
+from rcl_interfaces.msg import SetParametersResult
 import time
 
 class FaceDetectNode(Node):
@@ -16,7 +17,23 @@ class FaceDetectNode(Node):
         # 创建服务
         self.srv = self.create_service(FaceDetector, 'face_detect', self.face_detect_callback)
         self.bridge = CvBridge()
+        self.declare_parameter("number_of_times_to_upsample", 1)
+        self.number_of_times_to_upsample = 1
+        self.declare_parameter("model", "hog")
+        self.model = "hog"
         self.get_logger().info("Face Detect Service is Ready.")
+        self.add_on_set_parameters_callback(self.param_callback)
+
+    def param_callback(self, params):
+        for param in params:
+            if param.name == "number_of_times_to_upsample":
+                self.number_of_times_to_upsample = param.value
+                self.get_logger().info(f"number_of_times_to_upsample set to {self.number_of_times_to_upsample}")
+            elif param.name == "model":
+                self.model = param.value
+                self.get_logger().info(f"model set to {self.model}")
+        # 返回成功信息
+        return SetParametersResult(successful=True)
 
     def face_detect_callback(self, request, response):
         # 判断图像是否为空
@@ -31,7 +48,7 @@ class FaceDetectNode(Node):
         self.get_logger().info('图片加载完成,开始检测人脸...')
         star_time = time.time()
         # 检测人脸
-        face_location = face_recognition.face_locations(cv_image,number_of_times_to_upsample=1,model="hog")
+        face_location = face_recognition.face_locations(cv_image,number_of_times_to_upsample=self.number_of_times_to_upsample,model=self.model)
         response.use_time = time.time() - star_time
         self.get_logger().info(f'人脸检测完成,耗时 {response.use_time:.4f} 秒')
         # 人脸数量

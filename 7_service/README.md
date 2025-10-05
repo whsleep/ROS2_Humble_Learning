@@ -223,3 +223,115 @@ ros2 run demo_python_service face_detect_node
 # 客户端
 ros2 run demo_python_service face_detect_client_node
 ```
+
+# 参数
+
+## 参数声明
+
+在 [face_detect_node.py](/7_service/demo_python_service/demo_python_service/face_detect_node.py)
+
+```shell
+self.declare_parameter("number_of_times_to_upsample", 1)
+self.number_of_times_to_upsample = 1
+self.declare_parameter("model", "hog")
+self.model = "hog"
+```
+
+运行 
+
+```shell
+ros2 run demo_python_service face_detect_node 
+```
+
+查看是否声明成功
+
+```shell
+whf@OooO:~/Document$ ros2 param list
+/face_detect_node:
+  model
+  number_of_times_to_upsample
+  use_sim_time
+```
+
+获取/设置参数
+
+```shell
+whf@OooO:~/Document$ ros2 param get /face_detect_node number_of_times_to_upsample
+Integer value is: 1
+whf@OooO:~/Document$ ros2 param get /face_detect_node model
+String value is: hog
+whf@OooO:~/Document$ ros2 param set /face_detect_node number_of_times_to_upsample 5
+Set parameter successful
+whf@OooO:~/Document$ ros2 param get /face_detect_node number_of_times_to_upsample
+Integer value is: 5
+```
+
+## 动态更新参数
+
+动态参数更新相当于服务通信, 对于传入参数在节点内使用一个回调函数进行处理
+
+```python
+# 绑定回调函数
+self.add_on_set_parameters_callback(self.param_callback)
+
+# 参数修改回调函数
+    def param_callback(self, params):
+        for param in params:
+            if param.name == "number_of_times_to_upsample":
+                self.number_of_times_to_upsample = param.value
+                self.get_logger().info(f"number_of_times_to_upsample set to {self.number_of_times_to_upsample}")
+            elif param.name == "model":
+                self.model = param.value
+                self.get_logger().info(f"model set to {self.model}")
+        # 返回成功信息
+        return SetParametersResult(successful=True)
+```
+
+运行测试
+
+```shell
+# 运行
+ros2 run demo_python_service face_detect_node 
+# 修改参数
+ros2 param set /face_detect_node number_of_times_to_upsample 5
+# [INFO] [1759651377.032233800] [face_detect_node]: number_of_times_to_upsample set to 5
+
+ros2 param set /face_detect_node model cnn
+# [INFO] [1759651493.653109824] [face_detect_node]: model set to cnn
+```
+
+## Launch 启动多个节点
+
+创建 `launch` 文件夹
+
+新建 `launch.py` 文件
+
+> cpp 版本在 `CMakeList.txt` 中加入以下内容
+> ```CMake
+> install(DIRECTORY launch
+> DESTINATION lib/${PROJECT_AME}
+> )
+> ```
+
+`setup.py` 引入 
+
+```shell
+from glob import glob
+```
+
+并在 `data_files` 加入 `launch` 目录
+
+```python
+    data_files=[
+        ('share/ament_index/resource_index/packages',
+            ['resource/' + package_name]),
+        ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name+"/launch", glob('launch/*.launch.py')),
+    ],
+```
+
+编译运行验证
+
+```shell
+ros2 launch demo_python_service demo.launch.py
+```
