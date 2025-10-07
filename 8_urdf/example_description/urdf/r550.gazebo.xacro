@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+<robot>
+  <!-- All static links get collapsed down to base_link in Gazebo, so that's
+       the one to apply the colour to (in Gazebo 5+). -->
+
+ <!-- laser -->
+<gazebo reference="laser">         
+    <sensor type="ray" name="laser">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>true</visualize>   <!-- 是否在 Gazebo 中可视化激光束 -->
+      <update_rate>20</update_rate>  <!-- 刷新频率（Hz） -->
+      
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>      <!-- 水平方向采样数 -->
+            <resolution>1</resolution>  <!-- 分辨率（1 表示每个采样点都返回） -->
+            <min_angle>0.00000</min_angle>  <!-- 最小角度（-π，左侧） -->
+            <max_angle>6.28000</max_angle>   <!-- 最大角度（π，右侧） -->
+          </horizontal>
+        </scan>
+        
+        <range>
+          <min>0.10</min>    <!-- 最小检测距离（m） -->
+          <max>10.0</max>    <!-- 最大检测距离（m） -->
+          <resolution>0.01</resolution>  <!-- 距离分辨率（m） -->
+        </range>
+        
+        <noise>
+          <type>gaussian</type>  <!-- 噪声模型（高斯噪声） -->
+          <mean>0.0</mean>       <!-- 噪声均值 -->
+          <stddev>0.01</stddev>  <!-- 噪声标准差 -->
+        </noise>
+      </ray>
+      
+      <!-- ROS 2 适配：插件文件名和参数调整 -->
+      <plugin name="gazebo_rplidar" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <namespace>/</namespace>
+          <remapping>~/out:=scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>laser</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+
+
+<gazebo reference="c70_link">
+  <sensor type="camera" name="camera1">
+    <update_rate>30.0</update_rate>  <!-- 与插件更新频率保持一致 -->
+    <camera name="head">
+      <horizontal_fov>1.3962634</horizontal_fov>  <!-- 约79.9度视野 -->
+      <image>
+        <width>800</width>
+        <height>800</height>
+        <format>R8G8B8</format>  <!-- 彩色图像格式 -->
+      </image>
+      <clip>
+        <near>0.02</near>  <!-- 最近拍摄距离 -->
+        <far>300</far>     <!-- 最远拍摄距离 -->
+      </clip>
+      <noise>
+        <type>gaussian</type>  <!-- 高斯噪声模型 -->
+        <mean>0.0</mean>
+        <stddev>0.007</stddev>
+      </noise>
+    </camera>
+
+    <!-- ROS 2 适配：相机插件配置 -->
+    <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+      <!-- 基础配置 -->
+      <always_on>true</always_on>  <!-- 保持插件持续运行（ROS 2 推荐小写命名） -->
+      <update_rate>30.0</update_rate>  <!-- 与传感器 update_rate 一致 -->
+      
+      <!-- 话题与坐标系配置（ROS 2 调整参数标签名） -->
+      <ros_image_topic>image_raw</ros_image_topic>  <!-- 图像数据话题 -->
+      <ros_camera_info_topic>camera_info</ros_camera_info_topic>  <!-- 相机内参话题 -->
+      <ros_frame>c70_link</ros_frame>  <!-- 必须与 reference 引用的 link 名称一致 -->
+      
+      <!-- 相机校准参数（保持不变） -->
+      <hack_baseline>0.07</hack_baseline>  <!-- 双目基线（单目可忽略） -->
+      <distortion_k1>0.0</distortion_k1>
+      <distortion_k2>0.0</distortion_k2>
+      <distortion_k3>0.0</distortion_k3>
+      <distortion_t1>0.0</distortion_t1>
+      <distortion_t2>0.0</distortion_t2>
+    </plugin>
+  </sensor>
+</gazebo>
+    
+
+<!-- IMU sensor controller (ROS 2 Humble 适配版) -->
+  <gazebo reference="IMU_sensor">
+    <gravity>true</gravity>  <!-- 启用重力补偿 -->
+    <sensor name="imu_sensor" type="imu">
+      <always_on>true</always_on>  <!-- 持续运行传感器 -->
+      <update_rate>20</update_rate>  <!-- 传感器更新频率（Hz） -->
+      <visualize>true</visualize>  <!-- 在 Gazebo 中可视化传感器 -->
+      <pose>0 0 0 0 0 0</pose>  <!-- 传感器相对于链接的位姿 -->
+
+      <!-- ROS 2 适配：IMU 插件配置 -->
+      <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+        <ros>
+          <namespace>/</namespace>
+          <remapping>~/out:=imu</remapping> 
+        </ros>     
+        <initial_orientation_as_reference>false</initial_orientation_as_reference> <!-- 初始 orientation 是否作为参考基准 -->
+      </plugin>
+      <!-- 六轴噪声设置 -->
+      <imu>
+          <angular_velocity>
+              <x>
+                  <noise type="gaussian">
+                      <mean>0.0</mean>
+                      <stddev>2e-4</stddev>
+                      <bias_mean>0.0000075</bias_mean>
+                      <bias_stddev>0.0000008</bias_stddev>
+                  </noise>
+              </x>
+              <y>
+                  <noise type="gaussian">
+                      <mean>0.0</mean>
+                      <stddev>2e-4</stddev>
+                      <bias_mean>0.0000075</bias_mean>
+                      <bias_stddev>0.0000008</bias_stddev>
+                  </noise>
+              </y>
+              <z>
+                  <noise type="gaussian">
+                      <mean>0.0</mean>
+                      <stddev>2e-4</stddev>
+                      <bias_mean>0.0000075</bias_mean>
+                      <bias_stddev>0.0000008</bias_stddev>
+                  </noise>
+              </z>
+          </angular_velocity>
+          <linear_acceleration>
+              <x>
+                  <noise type="gaussian">
+                      <mean>0.0</mean>
+                      <stddev>1.7e-2</stddev>
+                      <bias_mean>0.1</bias_mean>
+                      <bias_stddev>0.001</bias_stddev>
+                  </noise>
+              </x>
+              <y>
+                  <noise type="gaussian">
+                      <mean>0.0</mean>
+                      <stddev>1.7e-2</stddev>
+                      <bias_mean>0.1</bias_mean>
+                      <bias_stddev>0.001</bias_stddev>
+                  </noise>
+              </y>
+              <z>
+                  <noise type="gaussian">
+                      <mean>0.0</mean>
+                      <stddev>1.7e-2</stddev>
+                      <bias_mean>0.1</bias_mean>
+                      <bias_stddev>0.001</bias_stddev>
+                  </noise>
+              </z>
+          </linear_acceleration>
+      </imu>
+    </sensor>
+  </gazebo>
+    
+
+  <gazebo reference="base_footprint">
+    <material>Gazebo/Yellow</material>
+    <gravity>true</gravity>
+  </gazebo>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <gazebo reference="c70_link">
+    <material>Gazebo/Black</material>
+  </gazebo>  
+
+  <gazebo reference="rplidar_link">
+    <material>Gazebo/Black</material>
+  </gazebo>  
+  <!-- Wheel friction to zero, as movement is handled by applying forces at the body level. -->
+  <gazebo reference="right_front_wheel_link">
+    <material>Gazebo/Black</material>
+	  <selfCollide>false</selfCollide>
+      <gravity>true</gravity>
+      <mu1>0.6</mu1>
+      <mu2>0.4</mu2>
+      <kp>1e3</kp>
+      <kd>1e2</kd>
+  </gazebo>
+
+  <gazebo reference="left_front_wheel_link">
+    <material>Gazebo/Black</material>
+	  <selfCollide>false</selfCollide>
+      <gravity>true</gravity>
+      <mu1>0.6</mu1>
+      <mu2>0.4</mu2>
+      <kp>1e3</kp>
+      <kd>1e2</kd>
+  </gazebo>
+
+  <gazebo reference="right_rear_wheel_link">
+    <material>Gazebo/Black</material>
+	  <selfCollide>false</selfCollide>
+      <gravity>true</gravity>
+      <mu1>0.6</mu1>
+      <mu2>0.4</mu2>
+      <kp>1e3</kp>
+      <kd>1e2</kd>
+  </gazebo>
+
+  <gazebo reference="left_rear_wheel_link">
+    <material>Gazebo/Black</material>
+	  <selfCollide>false</selfCollide>
+      <gravity>true</gravity>
+      <mu1>0.6</mu1>
+      <mu2>0.4</mu2>
+      <kp>1e3</kp>
+      <kd>1e2</kd>
+  </gazebo>
+</robot>

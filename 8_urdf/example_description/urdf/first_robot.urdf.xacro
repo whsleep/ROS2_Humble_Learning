@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="robot_name">
+    <!-- 定义宏：基础链接（圆柱体） -->
+    <xacro:macro name="base_link" params="length radius">
+        <!-- base_link -->
+        <link name="base_link">
+            <!-- 可视化部分（修正拼写错误：viaual → visual） -->
+            <visual>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+                <!-- 几何形状（修正拼写错误：cyliner → cylinder） -->
+                <geometry>
+                    <cylinder radius="${radius}" length="${length}" />
+                </geometry>
+                <!-- 颜色 -->
+                <material name="white">
+                    <color rgba="1.0 1.0 1.0 0.5" />
+                </material>
+            </visual>
+            
+            <!-- 碰撞模型（Gazebo物理碰撞检测用） -->
+            <collision>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+                <geometry>
+                    <cylinder radius="${radius}" length="${length}" />
+                </geometry>
+            </collision>
+            
+            <!-- 惯性参数（Gazebo物理仿真必需） -->
+            <inertial>
+                <mass value="1.0" /> <!-- 质量1kg -->
+                <!-- 圆柱体转动惯量近似计算（针对z轴对称） -->
+                <inertia ixx="0.01" ixy="0.0" ixz="0.0"
+                         iyy="0.01" iyz="0.0"
+                         izz="0.005" />
+            </inertial>
+        </link>
+        
+        <!-- Gazebo扩展配置（指定物理属性） -->
+        <gazebo reference="base_link">
+            <material>Gazebo/White</material> <!-- Gazebo兼容材质 -->
+            <damping>0.01</damping> <!-- 阻尼系数 -->
+            <friction>0.8</friction> <!-- 摩擦系数 -->
+        </gazebo>
+    </xacro:macro>
+
+    <!-- 定义宏：IMU链接（立方体） -->
+    <xacro:macro name="imu_link" params="imu_name">
+        <!-- imu_link -->
+        <link name="${imu_name}">
+            <!-- 可视化部分（修正拼写错误：viaual → visual） -->
+            <visual>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+                <geometry>
+                    <box size="0.02 0.02 0.02" /> <!-- 2cm立方体 -->
+                </geometry>
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 0.5" />
+                </material>
+            </visual>
+            
+            <!-- 碰撞模型 -->
+            <collision>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+                <geometry>
+                    <box size="0.02 0.02 0.02" />
+                </geometry>
+            </collision>
+            
+            <!-- 惯性参数（IMU质量较小） -->
+            <inertial>
+                <mass value="0.05" /> <!-- 质量50g -->
+                <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+                         iyy="0.000001" iyz="0.0"
+                         izz="0.000001" />
+            </inertial>
+        </link>
+        
+        <!-- Gazebo扩展配置 -->
+        <gazebo reference="${imu_name}">
+            <material>Gazebo/Black</material>
+        </gazebo>
+    </xacro:macro>
+
+    <!-- 实例化链接 -->
+    <xacro:base_link length="0.12" radius="0.10"/> <!-- 长度0.12m，半径0.10m的圆柱体 -->
+    <xacro:imu_link imu_name="imu_link"/>
+    
+    <!-- 关节：连接base_link和imu_link（固定关节） -->
+    <joint name="base_imu" type="fixed">
+        <parent link="base_link"/>
+        <child link="imu_link"/>
+        <origin xyz="0 0 ${0.12/2}" rpy="0 0 0"/> <!-- 将IMU放在base_link顶端（length/2处） -->
+        <!-- 固定关节无需旋转轴，可省略axis标签 -->
+    </joint>
+</robot>
