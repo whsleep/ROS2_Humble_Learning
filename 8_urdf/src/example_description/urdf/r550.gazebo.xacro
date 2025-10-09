@@ -167,6 +167,7 @@
   </gazebo>
     
 
+  
   <gazebo reference="base_footprint">
     <material>Gazebo/Yellow</material>
     <gravity>true</gravity>
@@ -184,43 +185,37 @@
     <material>Gazebo/Black</material>
   </gazebo>  
   <!-- Wheel friction to zero, as movement is handled by applying forces at the body level. -->
-  <gazebo reference="right_front_wheel_link">
-    <material>Gazebo/Black</material>
-	  <selfCollide>false</selfCollide>
-      <gravity>true</gravity>
-      <mu1>0.6</mu1>
-      <mu2>0.4</mu2>
-      <kp>1e3</kp>
-      <kd>1e2</kd>
-  </gazebo>
 
-  <gazebo reference="left_front_wheel_link">
-    <material>Gazebo/Black</material>
-	  <selfCollide>false</selfCollide>
-      <gravity>true</gravity>
-      <mu1>0.6</mu1>
-      <mu2>0.4</mu2>
-      <kp>1e3</kp>
-      <kd>1e2</kd>
-  </gazebo>
-
-  <gazebo reference="right_rear_wheel_link">
-    <material>Gazebo/Black</material>
-	  <selfCollide>false</selfCollide>
-      <gravity>true</gravity>
-      <mu1>0.6</mu1>
-      <mu2>0.4</mu2>
-      <kp>1e3</kp>
-      <kd>1e2</kd>
-  </gazebo>
-
-  <gazebo reference="left_rear_wheel_link">
-    <material>Gazebo/Black</material>
-	  <selfCollide>false</selfCollide>
-      <gravity>true</gravity>
-      <mu1>0.6</mu1>
-      <mu2>0.4</mu2>
-      <kp>1e3</kp>
-      <kd>1e2</kd>
+  <ros2_control name="r550" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
+    <!-- 仅保留 velocity 接口，删除 effort 接口 -->
+    <joint name="right_front_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <!-- 其他三个车轮关节配置相同，均删除 effort 接口 -->
+    <joint name="left_front_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="right_rear_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+    <joint name="left_rear_wheel_joint">
+      <command_interface name="velocity" />
+      <state_interface name="position" />
+      <state_interface name="velocity" />
+    </joint>
+  </ros2_control>
+  <gazebo>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <parameters>$(find example_description)/config/r550.yaml</parameters>
+        </plugin>
   </gazebo>
 </robot>

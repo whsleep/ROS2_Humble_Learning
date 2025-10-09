@@ -44,10 +44,19 @@ def generate_launch_description():
         ),
         launch_arguments=[('world', default_gazebo_world_path), ('verbose', 'true')]
     )
-
+    # 启动控制器的节点
+    start_controllers = launch_ros.actions.Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "joint_state_broadcaster",  # 关节状态广播器
+            "mecanum_controller",        # 麦轮控制器（替换为你的控制器名）
+        ]
+    )
     # Create and return the launch description
     return launch.LaunchDescription([
         action_launch_robot,
         node_robot_state_publisher,
-        spawn_entity
+        spawn_entity,
+        start_controllers
     ])

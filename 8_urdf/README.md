@@ -100,4 +100,92 @@ else:
 print(os.environ['GAZEBO_MODEL_PATH'])
 ```
 
+## ROS2_control
 
+安装 `ROS2_control`
+
+```shell
+sudo apt install ros-$ROS_DISTRO-ros2-control
+```
+
+查看支持的控制器 `sudo apt info ros-$ROS_DISTRO-ros2-controllers`
+
+安装 `ROS2_controllers`
+
+```shell
+sudo apt install ros-$ROS_DISTRO-ros2-controllers
+```
+
+加载第三方控制器 `package`
+
+```shell
+git clone https://github.com/roboTHIx/mecanum_controller.git --branch=humble
+```
+
+在 `gazebo` 插件配置中指定 `ros2_control` 配置文件位置
+
+```shell
+  <gazebo>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <parameters>$(find example_description)/config/r550.yaml</parameters>
+        </plugin>
+  </gazebo>
+```
+
+添加 `config/r550.yaml` 配置文件，写入 `ros2_control` 配置及第三方插件配置
+
+```yaml
+controller_manager:
+  ros__parameters:
+    update_rate: 50
+    use_sim_time: true
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    mecanum_controller:
+      type: mecanum_controller/MecanumController
+
+# 修正：mecanum_controller与joint_state_broadcaster同级（缩进2格）
+joint_state_broadcaster:
+  ros__parameters:
+    joints:
+      - left_front_wheel_joint
+      - right_front_wheel_joint
+      - left_rear_wheel_joint
+      - right_rear_wheel_joint
+
+
+mecanum_controller:
+  ros__parameters:
+    front_left_wheel_name: "left_front_wheel_joint"  # 直接给字符串值
+    front_right_wheel_name: "right_front_wheel_joint"
+    rear_left_wheel_name: "left_rear_wheel_joint"
+    rear_right_wheel_name: "right_rear_wheel_joint"
+    # 其他参数也需改为直接赋值格式
+    wheel_separation_x: 0.08575
+    wheel_separation_y: 0.09
+    wheel_radius: 0.035
+    tf_frame_prefix_enable: true
+    odom_frame_id: "odom"
+    base_frame_id: "base_link"
+    open_loop: false
+    position_feedback: true
+    enable_odom_tf: true
+    cmd_vel_timeout: 0.05
+    publish_rate: 50.0
+```
+
+`launch` 文件中添加控制节点
+
+```python
+    # 启动控制器的节点
+    start_controllers = launch_ros.actions.Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "joint_state_broadcaster",  # 关节状态广播器
+            "mecanum_controller",        # 麦轮控制器（替换为你的控制器名）
+        ]
+    )
+```
+
+运行即可通过指令完成控制
