@@ -181,7 +181,7 @@ mecanum_controller:
     start_controllers = launch_ros.actions.Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[
+        argsuments=[
             "joint_state_broadcaster",  # 关节状态广播器
             "mecanum_controller",        # 麦轮控制器（替换为你的控制器名）
         ]
@@ -189,3 +189,6 @@ mecanum_controller:
 ```
 
 运行即可通过指令完成控制
+
+!!! 后续修改为差分模型，上述过程仅供参考
+
