@@ -22,10 +22,7 @@ def generate_launch_description():
     robot_state_publisher_node = launch_ros.actions.Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[
-            {'robot_description': robot_description},
-            {'use_sim_time': True}
-        ]
+        parameters=[{'robot_description': robot_description}]
     )
 
     # 通过 IncludeLaunchDescription 包含另外一个 launch 文件
@@ -33,10 +30,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource([get_package_share_directory(
             'gazebo_ros'), '/launch', '/gazebo.launch.py']),
       	# 传递参数
-        launch_arguments={
-            'world': default_world_path,
-            'use_sim_time': 'true'  
-        }.items()
+        launch_arguments=[('world', default_world_path),('verbose','true')]
     )
     # 请求 Gazebo 加载机器人
     spawn_entity_node = launch_ros.actions.Node(
