@@ -114,3 +114,24 @@ ros2 launch fishbot_description gazebo_sim.launch.py
 # 新开一个终端
 ros2 launch fishbot_navigation2 navigation2.launch.py
 ```
+
+- 发布 `amcl` 初始位姿
+
+创建 `package`
+
+```shell
+ros2 pkg create fishbot_application --build-type ament_python --license MIT
+```
+
+创建发布节点
+
+[init_robot_pose.py](/9_nav2/src/fishbot_application/fishbot_application/init_robot_pose.py)
+
+编译后，分别开三个终端执行以下操作
+
+```shell
+ros2 launch fishbot_description gazebo_sim.launch.py
+ros2 launch fishbot_navigation2 navigation2.launch.py
+ros2 run fishbot_application init_robot_pose 
+```
+
